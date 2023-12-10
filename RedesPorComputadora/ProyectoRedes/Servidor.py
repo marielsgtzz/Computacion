@@ -25,23 +25,20 @@ def handle_client(conn, addr):
     print(f"Usuario {alias} conectado desde {addr}")
 
     connected = True
-
-    # Envía una solicitud de alias al cliente
-
-    # # Recibe el alias del cliente
-     
-    # print(f"El alias de [{addr}] es: {alias}")
-
+    cantMsg = 0
     # Bucle principal para recibir mensajes
     while connected:
-        conn.send("Con que alias quieres hablar?".encode(FORMAT))
+        if cantMsg == 0:
+            conn.send("Con que alias quieres hablar?".encode(FORMAT))
+        else:
+            conn.send(" ".encode(FORMAT)) # Para que pueda mandar varios mensajes sin que pregunte cada vez por el alias
         # Primero recibe la longitud del mensaje
         msg_length = conn.recv(HEADER).decode(FORMAT)
         if msg_length:
             msg_length = int(msg_length)
             # Luego recibe el mensaje de esa longitud
             msg = conn.recv(msg_length).decode(FORMAT)
-
+            cantMsg += 1
             # Comprueba si es el mensaje de desconexión
             if msg == DISCONNECT_MESSAGE:
                 connected = False
