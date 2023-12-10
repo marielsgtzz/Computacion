@@ -27,6 +27,7 @@ def handle_client(conn, addr):
 
     connected = True
     # Bucle principal para recibir mensajes
+    
     while connected:
         conn.send("Con que alias quieres hablar?\n".encode(FORMAT))
         alias_destino_length = int(conn.recv(HEADER).decode(FORMAT))
@@ -36,6 +37,17 @@ def handle_client(conn, addr):
             conn_destino, _ = clientes[alias_destino] # Obtiene la conexión del destinatario
             print(f"{alias} quiere hablar con {alias_destino}")
             conn_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)\n".encode(FORMAT))
+
+            respuesta = conn_destino.recv(HEADER).decode(FORMAT).strip().lower()   # Recibir respuesta directamente sin leer la longitud primero
+
+            if respuesta.lower() == 's':
+                conn.send(f"{alias_destino} aceptó tu solicitud de chat.\n".encode(FORMAT))
+                conn.send(f"[CONECTANDO] con {alias_destino}.\n".encode(FORMAT))
+                conn_destino.send(f"[CONECTANDO] con {alias}.\n".encode(FORMAT))
+                idConversacion += 1
+                conversacionesActivas[idConversacion] = [alias, alias_destino]
+            else:
+                conn.send(f"{alias_destino} rechazó tu solicitud de chat.\n".encode(FORMAT))
 
         else: #No esta el alias destinatario conectado
             conn.send("[ERROR] Usuario no encontrado.\n".encode(FORMAT))
