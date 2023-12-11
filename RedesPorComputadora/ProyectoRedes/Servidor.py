@@ -30,7 +30,7 @@ def imprimir_conversaciones():
 def reenviar_mensaje(alias_remitente,alias_destinatario,msj):
     if alias_destinatario in clientes:
         try:
-            clientes[alias_destinatario].send(f"{alias_remitente}: {msj}".encode(FORMAT))
+            clientes[alias_destinatario][0].send(f"{alias_remitente}: {msj}".encode(FORMAT))
         except Exception as e:
             print(f"Error al reenviar mensaje: {e}")
     else:
@@ -48,7 +48,7 @@ def handle_client(conn, addr):
         conn.close()
         return
 
-    clientes[alias] = conn
+    clientes[alias] = [conn,addr]
     print(f"Usuario {alias} conectado desde {addr}")
 
     esperando_respuesta = False  # Indica si estamos esperando una respuesta de chat
@@ -82,8 +82,8 @@ def handle_client(conn, addr):
                 respuesta = conn.recv(HEADER).decode(FORMAT).strip().lower()
                 if respuesta == 's':
                     conn.send(f"[CONECTANDO] con {alias_solicitante}.\n".encode(FORMAT)) # Mensaje para destinatario
-                    clientes[alias_solicitante].send(f"{alias} aceptó tu solicitud de chat.\n".encode(FORMAT)) # Mensaje para solicitante
-                    clientes[alias_solicitante].send(f"[CONECTANDO] con {alias}.\n".encode(FORMAT))
+                    clientes[alias_solicitante][0].send(f"{alias} aceptó tu solicitud de chat.\n".encode(FORMAT)) # Mensaje para solicitante
+                    clientes[alias_solicitante][0].send(f"[CONECTANDO] con {alias}.\n".encode(FORMAT))
 
                     idConversacion += 1
                     conversacionesActivas[idConversacion] = [alias_solicitante, alias_destino]
@@ -100,18 +100,19 @@ def handle_client(conn, addr):
                                 if alias in aliases:
                                     del conversacionesActivas[idConv]
                             imprimir_conversaciones()
+                            
                             print(f"[DESCONEXIÓN] {alias} se ha desconectado.")
 
                         reenviar_mensaje(alias_solicitante, alias_destino, msg)
                     connected = False  # Finalizar esta conexión si la conversación ha terminado
 
                 else:
-                    clientes[alias_solicitante].send(f"{alias} rechazó tu solicitud de chat.".encode(FORMAT))
+                    clientes[alias_solicitante][0].send(f"{alias} rechazó tu solicitud de chat.".encode(FORMAT))
 
                 esperando_respuesta = False
 
             elif alias_destino in clientes:
-                conn_destino = clientes[alias_destino]
+                conn_destino = clientes[alias_destino][0]
                 conn_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)".encode(FORMAT))
 
                 # Configuramos el estado para esperar una respuesta
