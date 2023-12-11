@@ -28,13 +28,16 @@ def imprimir_conversaciones():
     print("----------------------------------------------")
 
 def reenviar_mensaje(alias_remitente,alias_destinatario,msj):
+    print(f"Intentando reenviar mensaje de {alias_remitente} a {alias_destinatario}")
     if alias_destinatario in clientes:
         try:
-            clientes[alias_destinatario][0].send(f"{alias_remitente}: {msj}".encode(FORMAT))
+            cliente_destino, _ = clientes[alias_destinatario]
+            cliente_destino.send(f"{alias_remitente}: {msj}".encode(FORMAT))
+            print(f"Mensaje enviado de {alias_remitente} a {alias_destinatario}: {msj}")
         except Exception as e:
             print(f"Error al reenviar mensaje: {e}")
     else:
-        print(f"ERROR RENVIANDO EL MENSAJE {msj}")
+        print(f"ERROR: {alias_destinatario} no encontrado al reenviar mensaje.")
 
 # Se maneja la conexión cliente - servidor de forma individual e independiente a las demás
 def handle_client(conn, addr):
@@ -82,28 +85,44 @@ def handle_client(conn, addr):
                 respuesta = conn.recv(HEADER).decode(FORMAT).strip().lower()
                 if respuesta == 's':
                     conn.send(f"[CONECTANDO] con {alias_solicitante}.\n".encode(FORMAT)) # Mensaje para destinatario
-                    clientes[alias_solicitante][0].send(f"{alias} aceptó tu solicitud de chat.\n".encode(FORMAT)) # Mensaje para solicitante
-                    clientes[alias_solicitante][0].send(f"[CONECTANDO] con {alias_destino}.\n".encode(FORMAT))
                     clientes[alias_destino][0].send(f"[CONECTANDO] con {alias_solicitante}.\n".encode(FORMAT))
+                    clientes[alias_solicitante][0].send(f"{alias} aceptó tu solicitud de chat.\n \n".encode(FORMAT)) # Mensaje para solicitante
+                    clientes[alias_solicitante][0].send(f"[CONECTANDO] con {alias_destino}.\n".encode(FORMAT))
+                    
                     idConversacion += 1
                     conversacionesActivas[idConversacion] = [alias_solicitante, alias_destino]
                     imprimir_conversaciones()
 
                     # Los clientes comiencen a chatear entre ellxs
                     while True:
-                        msg = conn.recv(HEADER).decode(FORMAT)
-                        if msg == DISCONNECT_MESSAGE:
-                            conn.close()
-                            if alias in clientes:
-                                del clientes[alias]
+                        msg1 = clientes[alias_solicitante][0].recv(HEADER).decode(FORMAT)
+                        if msg1 == DISCONNECT_MESSAGE:
+                            clientes[alias_solicitante][0].close()
+                            if alias_solicitante in clientes:
+                                del clientes[alias_solicitante]
                             for idConv, aliases in list(conversacionesActivas.items()):
-                                if alias in aliases:
+                                if alias_solicitante in aliases:
                                     del conversacionesActivas[idConv]
                             imprimir_conversaciones()
                             
-                            print(f"[DESCONEXIÓN] {alias} se ha desconectado.")
+                            print(f"[DESCONEXIÓN] {alias_solicitante} se ha desconectado.")
 
-                        reenviar_mensaje(alias_solicitante, alias_destino, msg)
+                        reenviar_mensaje(alias_solicitante, alias_destino, msg1)
+
+                        msg2 = clientes[alias_destino][0].recv(HEADER).decode(FORMAT)
+                        if msg2 == DISCONNECT_MESSAGE:
+                            clientes[alias_destino][0].close()
+                            if alias_destino in clientes:
+                                del clientes[alias_destino]
+                            for idConv, aliases in list(conversacionesActivas.items()):
+                                if alias_destino in aliases:
+                                    del conversacionesActivas[idConv]
+                            imprimir_conversaciones()
+                            
+                            print(f"[DESCONEXIÓN] {alias_destino} se ha desconectado.")
+
+                        reenviar_mensaje(alias_destino, alias_solicitante, msg2)
+
                     connected = False  # Finalizar esta conexión si la conversación ha terminado
 
                 else:
