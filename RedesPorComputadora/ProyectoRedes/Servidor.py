@@ -61,7 +61,7 @@ def handle_client(conn, addr):
         try:
             # Solo envía la pregunta si no estamos esperando una respuesta
             if not esperando_respuesta:
-                conn.send("Con que alias quieres hablar?<END>".encode(FORMAT))
+                conn.send("Con que alias quieres hablar?".encode(FORMAT))
 
                 resp = conn.recv(HEADER).decode(FORMAT).strip()
 
@@ -83,8 +83,8 @@ def handle_client(conn, addr):
                 if respuesta == 's':
                     conn.send(f"[CONECTANDO] con {alias_solicitante}.\n".encode(FORMAT)) # Mensaje para destinatario
                     clientes[alias_solicitante][0].send(f"{alias} aceptó tu solicitud de chat.\n".encode(FORMAT)) # Mensaje para solicitante
-                    clientes[alias_solicitante][0].send(f"[CONECTANDO] con {alias}.\n".encode(FORMAT))
-
+                    clientes[alias_solicitante][0].send(f"[CONECTANDO] con {alias_destino}.\n".encode(FORMAT))
+                    clientes[alias_destino][0].send(f"[CONECTANDO] con {alias_solicitante}.\n".encode(FORMAT))
                     idConversacion += 1
                     conversacionesActivas[idConversacion] = [alias_solicitante, alias_destino]
                     imprimir_conversaciones()
