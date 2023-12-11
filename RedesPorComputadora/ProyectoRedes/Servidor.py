@@ -29,11 +29,11 @@ def imprimir_conversaciones():
         print(f"| {idConv:<7} | {alias1:<12} | {alias2:<12} |")
     print("----------------------------------------------")
 
-def reenviar_mensaje(alias_remitente,alias_destinatario,msj):
+def reenviar_mensaje(alias_remitente, alias_destinatario, msj):
     print(f"Intentando reenviar mensaje de {alias_remitente} a {alias_destinatario}")
     if alias_destinatario in clientes:
+        cliente_destino, _ = clientes[alias_destinatario]
         try:
-            cliente_destino, _ = clientes[alias_destinatario]
             cliente_destino.send(f"{alias_remitente}: {msj}".encode(FORMAT))
             print(f"Mensaje enviado de {alias_remitente} a {alias_destinatario}: {msj}")
         except Exception as e:
@@ -58,27 +58,28 @@ def manejar_conversacion(cliente1, cliente2, alias1, alias2):
 
     while True:
         readable, writable, exceptional = select.select(inputs, outputs, inputs)
-
         for s in readable:
             if s is cliente1:
                 mensaje = manejar_mensaje(cliente1, alias1)
                 if mensaje == DISCONNECT_MESSAGE or mensaje is None:
+                    cliente2.send(f"{alias1} se ha desconectado. Con que alias quieres hablar?".encode(FORMAT))
                     return alias1
                 reenviar_mensaje(alias1, alias2, mensaje)
             elif s is cliente2:
                 mensaje = manejar_mensaje(cliente2, alias2)
                 if mensaje == DISCONNECT_MESSAGE or mensaje is None:
+                    cliente1.send(f"{alias2} se ha desconectado. Con que alias quieres hablar?".encode(FORMAT))
                     return alias2
                 reenviar_mensaje(alias2, alias1, mensaje)
 
         for s in exceptional:
             if s is cliente1:
+                cliente2.send(f"{alias1} ha tenido un problema. Con que alias quieres hablar?".encode(FORMAT))
                 return alias1
             elif s is cliente2:
+                cliente1.send(f"{alias2} ha tenido un problema. Con que alias quieres hablar?".encode(FORMAT))
                 return alias2
 
-
-# Se maneja la conexión cliente - servidor de forma individual e independiente a las demás
 def handle_client(conn, addr):
     global idConversacion
 
@@ -92,36 +93,51 @@ def handle_client(conn, addr):
     clientes[alias] = (conn, addr)
     print(f"Usuario {alias} conectado desde {addr}")
 
-    while True:
-        conn.send("Con que alias quieres hablar?".encode(FORMAT))
-        alias_destino = conn.recv(HEADER).decode(FORMAT).strip()
+    try:
+        while True:
+            conn.send("Con que alias quieres hablar?".encode(FORMAT))
+            alias_destino = conn.recv(HEADER).decode(FORMAT).strip()
 
-        if alias_destino == DISCONNECT_MESSAGE:
-            break
-        elif alias_destino in clientes:
-            cliente_destino, _ = clientes[alias_destino]
-            cliente_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)".encode(FORMAT))
-            respuesta = conn.recv(HEADER).decode(FORMAT).strip().lower()
-
-            if respuesta == 's':
-                idConversacion += 1
-                conversacionesActivas[idConversacion] = (alias, alias_destino)
-                imprimir_conversaciones()
-                alias_desconectado = manejar_conversacion(conn, cliente_destino, alias, alias_destino)
-
-                print(f"[DESCONEXION] {alias_desconectado} se ha desconectado.")
-                del clientes[alias_desconectado]
-                del conversacionesActivas[idConversacion]
-                imprimir_conversaciones()
+            if alias_destino == DISCONNECT_MESSAGE:
                 break
+
+            elif alias_destino in clientes:
+                cliente_destino, _ = clientes[alias_destino]
+                cliente_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)".encode(FORMAT))
+                respuesta = conn.recv(HEADER).decode(FORMAT).strip().lower()
+
+                if respuesta == 's':
+                    idConversacion += 1
+                    conversacionesActivas[idConversacion] = (alias, alias_destino)
+                    imprimir_conversaciones()
+                    alias_desconectado = manejar_conversacion(conn, cliente_destino, alias, alias_destino)
+
+                    if alias_desconectado:
+                        del clientes[alias_desconectado]
+                        for idConv, aliases in list(conversacionesActivas.items()):
+                            if alias_desconectado in aliases:
+                                del conversacionesActivas[idConv]
+                        imprimir_conversaciones()
+
+                        # Notificar al otro cliente si todavía está conectado
+                        otro_cliente = alias if alias_desconectado == alias_destino else alias_destino
+                        if otro_cliente in clientes:
+                            clientes[otro_cliente][0].send(f"Tu compañero de chat {alias_desconectado} se ha desconectado.".encode(FORMAT))
+                        continue  # Hace que el bucle vuelva al inicio para preguntar de nuevo
+
+                else:
+                    print(f"{alias} rechazó la conversación con {alias_destino}.")
             else:
-                print(f"{alias} rechazó la conversación con {alias_destino}.")
-        else:
-            conn.send("[ERROR] Usuario no encontrado.".encode(FORMAT))
-
-    conn.close()
-    print(f"[DESCONEXION] {alias} se ha desconectado.")
-
+                conn.send("[ERROR] Usuario no encontrado.".encode(FORMAT))
+    finally:
+        conn.close()
+        if alias in clientes:
+            del clientes[alias]
+        for idConv, aliases in list(conversacionesActivas.items()):
+            if alias in aliases:
+                del conversacionesActivas[idConv]
+        imprimir_conversaciones()
+        print(f"[DESCONEXION] {alias} se ha desconectado.")
 
 def start():
     server.listen()
