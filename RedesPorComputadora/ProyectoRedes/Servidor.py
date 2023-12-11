@@ -53,7 +53,18 @@ def handle_client(conn, addr):
             # Solo envía la pregunta si no estamos esperando una respuesta
             if not esperando_respuesta:
                 conn.send("Con que alias quieres hablar?<END>".encode(FORMAT))
-                alias_destino = conn.recv(HEADER).decode(FORMAT).strip()
+                resp = conn.recv(HEADER).decode(FORMAT).strip()
+                if resp == DISCONNECT_MESSAGE:
+                    conn.close()
+                    if alias in clientes:
+                        del clientes[alias]
+                    for idConv, aliases in list(conversacionesActivas.items()):
+                        if alias in aliases:
+                            del conversacionesActivas[idConv]
+                    imprimir_conversaciones()
+                    print(f"[DESCONEXIÓN] {alias} se ha desconectado.")
+                else:
+                    alias_destino = resp
 
             # Si estamos esperando una respuesta, no preguntamos por un alias nuevamente
             if esperando_respuesta:
