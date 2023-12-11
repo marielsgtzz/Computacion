@@ -1,46 +1,43 @@
 import socket
+import threading
 
-HEADER = 1024
+HEADER = 64  # Para definir el tamaño máximo de los mensajes que esperamos recibir
+PORT = 5050
 FORMAT = 'utf-8'
-DISCONNECT_MESSAGE = "\\bye"
-
-alias = str(input("Ingrese su alias: "))
-SERVER = input("Ingrese la dirección IP del servidor: ")
-PORT = int(input("Ingrese el puerto del servidor: "))
-
-ADDR = (SERVER, PORT)
+DISCONNECT_MESSAGE = '\\bye'
+SERVER = socket.gethostbyname(socket.gethostname())
+ADDR = (SERVER, PORT)  # Guarda la info del cliente
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(ADDR)
+client.connect(ADDR)  # Conexión al servidor
 
-client.send(alias.encode(FORMAT))
+def send(msg):
+    message = msg.encode(FORMAT)  # Codifica la string a una secuencia de bits
+    client.send(message)  # Envía el mensaje directamente
 
-# Recibe un mensaje del servidor
-mensaje_servidor = client.recv(HEADER).decode(FORMAT)
-print(f"Mensaje del servidor: {mensaje_servidor}")
-
-while True:
-    alias_destino = str(input("Ingrese el alias del destinatario: "))
-    client.send(alias_destino.encode(FORMAT))
-
-    direccion_destino = eval(client.recv(HEADER).decode(FORMAT))
-    print(f"Conectando con {alias_destino} en {direccion_destino}")
-
-    socket_destino = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_destino.connect(direccion_destino)
-
-    # Comienza la conversación
+def listen():
     while True:
-        message = input("Usted dice: ")
-        socket_destino.send(message.encode(FORMAT))
-        if message == DISCONNECT_MESSAGE:
+        try:
+            msg = client.recv(HEADER).decode(FORMAT)
+            if msg:
+                print(msg)
+        except Exception as e:
+            print(f"Error al recibir datos: {e}")
             break
 
-        nuevo_mensaje = socket_destino.recv(HEADER).decode(FORMAT)
-        print(f"{alias_destino} dice: {nuevo_mensaje}")
+# Hilo para escuchar mensajes del servidor
+listen_thread = threading.Thread(target=listen)
+listen_thread.start()
 
-    socket_destino.close()
-    print("Conversación finalizada.")
-    break
+aliasPropio = input("Ingrese su alias: ")
+send(aliasPropio)
 
-client.close()
+while True:
+    message = input()
+    if message == DISCONNECT_MESSAGE:
+        send(DISCONNECT_MESSAGE)
+        break
+    send(message)
+
+print("[DESCONECTANDOSE]")
+listen_thread.join()  # Espera a que el hilo de escucha termine

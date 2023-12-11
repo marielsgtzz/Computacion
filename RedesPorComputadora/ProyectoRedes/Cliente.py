@@ -1,33 +1,43 @@
 import socket
+import threading
 
-HEADER = 64 #Para definir el tamaño max de los mensajes que esperamos recibir
+HEADER = 64  # Para definir el tamaño máximo de los mensajes que esperamos recibir
 PORT = 5050
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = '\\bye'
 SERVER = socket.gethostbyname(socket.gethostname())
-ADDR = (SERVER, PORT) #Guarda la info del cliente
+ADDR = (SERVER, PORT)  # Guarda la info del cliente
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(ADDR) #Conexion al servidor
+client.connect(ADDR)  # Conexión al servidor
 
 def send(msg):
-    message = msg.encode(FORMAT) #Codifica la string a una secuencia de bits
-    msg_length = len(message)
-    send_length = str(msg_length).encode(FORMAT)
-    send_length += b' ' * (HEADER - len(send_length))  #Se le agrega padding al mensaje para que sea del tamaño requerido
-    client.send(send_length)
-    client.send(message)
-    print(client.recv(2048).decode(FORMAT))
+    message = msg.encode(FORMAT)  # Codifica la string a una secuencia de bits
+    client.send(message)  # Envía el mensaje directamente
 
-aliasPropio = str(input("Ingrese su alias: "))
+def listen():
+    while True:
+        try:
+            msg = client.recv(HEADER).decode(FORMAT)
+            if msg:
+                print(msg)
+        except Exception as e:
+            print(f"Error al recibir datos: {e}")
+            break
+
+# Hilo para escuchar mensajes del servidor
+listen_thread = threading.Thread(target=listen)
+listen_thread.start()
+
+aliasPropio = input("Ingrese su alias: ")
 send(aliasPropio)
 
-message = input()
-send(message)
-while message != DISCONNECT_MESSAGE:
-    send(message)
+while True:
     message = input()
+    if message == DISCONNECT_MESSAGE:
+        send(DISCONNECT_MESSAGE)
+        break
+    send(message)
 
-if message == DISCONNECT_MESSAGE:
-    send(DISCONNECT_MESSAGE)
-    print("[DESCONECTANDOSE]")
+print("[DESCONECTANDOSE]")
+listen_thread.join()  # Espera a que el hilo de escucha termine
