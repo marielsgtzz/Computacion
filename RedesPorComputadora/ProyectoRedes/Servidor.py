@@ -27,6 +27,14 @@ def imprimir_conversaciones():
         print(f"| {idConv:<7} | {alias1:<12} | {alias2:<12} |")
     print("----------------------------------------------")
 
+def reenviar_mensaje(alias_remitente,alias_destinatario,msj):
+    if alias_destinatario in clientes:
+        try:
+            clientes[alias_destinatario].send(f"{alias_remitente}: {msj}".encode(FORMAT))
+        except Exception as e:
+            print(f"Error al reenviar mensaje: {e}")
+    else:
+        print(f"ERROR RENVIANDO EL MENSAJE {msj}")
 
 # Se maneja la conexión cliente - servidor de forma individual e independiente a las demás
 def handle_client(conn, addr):
@@ -45,6 +53,7 @@ def handle_client(conn, addr):
 
     esperando_respuesta = False  # Indica si estamos esperando una respuesta de chat
     alias_solicitante = None  # Almacena el alias del cliente que hace la solicitud
+    alias_destino = None
 
     connected = True
         
@@ -53,7 +62,9 @@ def handle_client(conn, addr):
             # Solo envía la pregunta si no estamos esperando una respuesta
             if not esperando_respuesta:
                 conn.send("Con que alias quieres hablar?<END>".encode(FORMAT))
+
                 resp = conn.recv(HEADER).decode(FORMAT).strip()
+
                 if resp == DISCONNECT_MESSAGE:
                     conn.close()
                     if alias in clientes:
@@ -77,10 +88,28 @@ def handle_client(conn, addr):
                     idConversacion += 1
                     conversacionesActivas[idConversacion] = [alias_solicitante, alias_destino]
                     imprimir_conversaciones()
+
+                    # Los clientes comiencen a chatear entre ellxs
+                    while True:
+                        msg = conn.recv(HEADER).decode(FORMAT)
+                        if msg == DISCONNECT_MESSAGE:
+                            conn.close()
+                            if alias in clientes:
+                                del clientes[alias]
+                            for idConv, aliases in list(conversacionesActivas.items()):
+                                if alias in aliases:
+                                    del conversacionesActivas[idConv]
+                            imprimir_conversaciones()
+                            print(f"[DESCONEXIÓN] {alias} se ha desconectado.")
+
+                        reenviar_mensaje(alias, alias_solicitante, msg)
+                    connected = False  # Finalizar esta conexión si la conversación ha terminado
+
                 else:
                     clientes[alias_solicitante].send(f"{alias} rechazó tu solicitud de chat.".encode(FORMAT))
 
                 esperando_respuesta = False
+                
             elif alias_destino in clientes:
                 conn_destino = clientes[alias_destino]
                 conn_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)".encode(FORMAT))
