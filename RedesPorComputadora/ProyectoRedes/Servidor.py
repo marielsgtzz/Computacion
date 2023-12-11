@@ -102,14 +102,14 @@ def handle_client(conn, addr):
                             imprimir_conversaciones()
                             print(f"[DESCONEXIÓN] {alias} se ha desconectado.")
 
-                        reenviar_mensaje(alias, alias_solicitante, msg)
+                        reenviar_mensaje(alias_solicitante, alias_destino, msg)
                     connected = False  # Finalizar esta conexión si la conversación ha terminado
 
                 else:
                     clientes[alias_solicitante].send(f"{alias} rechazó tu solicitud de chat.".encode(FORMAT))
 
                 esperando_respuesta = False
-                
+
             elif alias_destino in clientes:
                 conn_destino = clientes[alias_destino]
                 conn_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)".encode(FORMAT))
