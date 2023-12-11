@@ -1,5 +1,7 @@
 import socket
 import threading
+import select
+
 
 HEADER = 64 # Para definir el tamaño max de los mensajes que esperamos recibir
 PORT = 5050
@@ -39,111 +41,87 @@ def reenviar_mensaje(alias_remitente,alias_destinatario,msj):
     else:
         print(f"ERROR: {alias_destinatario} no encontrado al reenviar mensaje.")
 
+def manejar_mensaje(conn, alias):
+    try:
+        mensaje = conn.recv(HEADER).decode(FORMAT)
+        if not mensaje:
+            print(f"Error: Mensaje vacío recibido de {alias}")
+            return None
+        return mensaje
+    except Exception as e:
+        print(f"Error al recibir mensaje de {alias}: {e}")
+        return None
+
+def manejar_conversacion(cliente1, cliente2, alias1, alias2):
+    inputs = [cliente1, cliente2]
+    outputs = []
+
+    while True:
+        readable, writable, exceptional = select.select(inputs, outputs, inputs)
+
+        for s in readable:
+            if s is cliente1:
+                mensaje = manejar_mensaje(cliente1, alias1)
+                if mensaje == DISCONNECT_MESSAGE or mensaje is None:
+                    return alias1
+                reenviar_mensaje(alias1, alias2, mensaje)
+            elif s is cliente2:
+                mensaje = manejar_mensaje(cliente2, alias2)
+                if mensaje == DISCONNECT_MESSAGE or mensaje is None:
+                    return alias2
+                reenviar_mensaje(alias2, alias1, mensaje)
+
+        for s in exceptional:
+            if s is cliente1:
+                return alias1
+            elif s is cliente2:
+                return alias2
+
+
 # Se maneja la conexión cliente - servidor de forma individual e independiente a las demás
 def handle_client(conn, addr):
     global idConversacion
 
     print(f"[NUEVA CONEXION] IP y puerto: {addr} conectados.")
-    try:
-        alias = conn.recv(HEADER).decode(FORMAT).strip()
-    except ValueError:
-        print(f"Error al recibir el alias del cliente {addr}")
+    alias = conn.recv(HEADER).decode(FORMAT).strip()
+    if not alias:
+        print(f"Error: Alias vacío recibido de {addr}")
         conn.close()
         return
 
-    clientes[alias] = [conn,addr]
+    clientes[alias] = (conn, addr)
     print(f"Usuario {alias} conectado desde {addr}")
 
-    esperando_respuesta = False  # Indica si estamos esperando una respuesta de chat
-    alias_solicitante = None  # Almacena el alias del cliente que hace la solicitud
-    alias_destino = None
+    while True:
+        conn.send("Con que alias quieres hablar?".encode(FORMAT))
+        alias_destino = conn.recv(HEADER).decode(FORMAT).strip()
 
-    connected = True
-        
-    while connected:
-        try:
-            # Solo envía la pregunta si no estamos esperando una respuesta
-            if not esperando_respuesta:
-                conn.send("Con que alias quieres hablar?".encode(FORMAT))
+        if alias_destino == DISCONNECT_MESSAGE:
+            break
+        elif alias_destino in clientes:
+            cliente_destino, _ = clientes[alias_destino]
+            cliente_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)".encode(FORMAT))
+            respuesta = conn.recv(HEADER).decode(FORMAT).strip().lower()
 
-                resp = conn.recv(HEADER).decode(FORMAT).strip()
+            if respuesta == 's':
+                idConversacion += 1
+                conversacionesActivas[idConversacion] = (alias, alias_destino)
+                imprimir_conversaciones()
+                alias_desconectado = manejar_conversacion(conn, cliente_destino, alias, alias_destino)
 
-                if resp == DISCONNECT_MESSAGE:
-                    conn.close()
-                    if alias in clientes:
-                        del clientes[alias]
-                    for idConv, aliases in list(conversacionesActivas.items()):
-                        if alias in aliases:
-                            del conversacionesActivas[idConv]
-                    imprimir_conversaciones()
-                    print(f"[DESCONEXIÓN] {alias} se ha desconectado.")
-                else:
-                    alias_destino = resp
-
-            # Si estamos esperando una respuesta, no preguntamos por un alias nuevamente
-            if esperando_respuesta:
-                respuesta = conn.recv(HEADER).decode(FORMAT).strip().lower()
-                if respuesta == 's':
-                    conn.send(f"[CONECTANDO] con {alias_solicitante}.\n".encode(FORMAT)) # Mensaje para destinatario
-                    clientes[alias_destino][0].send(f"[CONECTANDO] con {alias_solicitante}.\n".encode(FORMAT))
-                    clientes[alias_solicitante][0].send(f"{alias} aceptó tu solicitud de chat.\n \n".encode(FORMAT)) # Mensaje para solicitante
-                    clientes[alias_solicitante][0].send(f"[CONECTANDO] con {alias_destino}.\n".encode(FORMAT))
-                    
-                    idConversacion += 1
-                    conversacionesActivas[idConversacion] = [alias_solicitante, alias_destino]
-                    imprimir_conversaciones()
-
-                    # Los clientes comiencen a chatear entre ellxs
-                    while True:
-                        msg1 = clientes[alias_solicitante][0].recv(HEADER).decode(FORMAT)
-                        if msg1 == DISCONNECT_MESSAGE:
-                            clientes[alias_solicitante][0].close()
-                            if alias_solicitante in clientes:
-                                del clientes[alias_solicitante]
-                            for idConv, aliases in list(conversacionesActivas.items()):
-                                if alias_solicitante in aliases:
-                                    del conversacionesActivas[idConv]
-                            imprimir_conversaciones()
-                            
-                            print(f"[DESCONEXIÓN] {alias_solicitante} se ha desconectado.")
-
-                        reenviar_mensaje(alias_solicitante, alias_destino, msg1)
-
-                        msg2 = clientes[alias_destino][0].recv(HEADER).decode(FORMAT)
-                        if msg2 == DISCONNECT_MESSAGE:
-                            clientes[alias_destino][0].close()
-                            if alias_destino in clientes:
-                                del clientes[alias_destino]
-                            for idConv, aliases in list(conversacionesActivas.items()):
-                                if alias_destino in aliases:
-                                    del conversacionesActivas[idConv]
-                            imprimir_conversaciones()
-                            
-                            print(f"[DESCONEXIÓN] {alias_destino} se ha desconectado.")
-
-                        reenviar_mensaje(alias_destino, alias_solicitante, msg2)
-
-                    connected = False  # Finalizar esta conexión si la conversación ha terminado
-
-                else:
-                    clientes[alias_solicitante][0].send(f"{alias} rechazó tu solicitud de chat.".encode(FORMAT))
-
-                esperando_respuesta = False
-
-            elif alias_destino in clientes:
-                conn_destino = clientes[alias_destino][0]
-                conn_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)".encode(FORMAT))
-
-                # Configuramos el estado para esperar una respuesta
-                alias_solicitante = alias
-                esperando_respuesta = True
+                print(f"[DESCONEXION] {alias_desconectado} se ha desconectado.")
+                del clientes[alias_desconectado]
+                del conversacionesActivas[idConversacion]
+                imprimir_conversaciones()
+                break
             else:
-                conn.send("[ERROR] Usuario no encontrado.".encode(FORMAT))
-        except Exception as e:
-            print(f"Error: {e}")
-            connected = False
+                print(f"{alias} rechazó la conversación con {alias_destino}.")
+        else:
+            conn.send("[ERROR] Usuario no encontrado.".encode(FORMAT))
 
     conn.close()
+    print(f"[DESCONEXION] {alias} se ha desconectado.")
+
 
 def start():
     server.listen()
