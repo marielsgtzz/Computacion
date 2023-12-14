@@ -1,4 +1,3 @@
-
 import socket
 import threading
 import select
@@ -18,7 +17,9 @@ server.bind(ADDR) # Binding del socket con el server
 
 clientes = {} # Lista que tendrá a todos los clientes
 conversacionesActivas = {} # Estructura {{idConv, [alias1,alias2]}}
+clientes_ocupados = {} #Lista que tendra todos los clientes ocupados
 idConversacion = 0
+
 
 
 # Función para imprimir el diccionario en formato de tabla
@@ -149,6 +150,13 @@ def handle_client(conn, addr):
                 # Verifica si el alias de destino esta en el diccionario cliente
                 elif alias_destino in clientes:
                     cliente_destino, _ = clientes[alias_destino]
+                    
+                    # Verifica si el alias destino ya está ocupado en una conversación
+                    if alias_destino in clientes_ocupados.values():
+                        conn.send(f"Error: {alias_destino} esta en otro chat".encode(FORMAT))
+                        continue
+                        
+
                     # Envia un mensaje al cliente de destino solicitando su aceptacion para la conversacion
                     cliente_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)".encode(FORMAT))
                     respuesta = conn.recv(HEADER).decode(FORMAT).strip().lower()
@@ -159,9 +167,17 @@ def handle_client(conn, addr):
                         idConversacion += 1
                         conversacionesActivas[idConversacion] = (alias, alias_destino)
                         imprimir_conversaciones()
+                        
+                        #Mete los cliente en la lista clientes ocupados
+                        clientes_ocupados[alias] = alias
+                        clientes_ocupados[alias_destino] = alias_destino
+
                         # Llama a la funcion manejar_conversacion para gestionar la conversacion
                         alias_desconectado = manejar_conversacion(conn, cliente_destino, alias, alias_destino)
                         
+                        #Saca a los clientes una vez que la conversacion esta terminada
+                        clientes_ocupados.pop(alias, None)
+                        clientes_ocupados.pop(alias_destino, None)
 
                         # Maneja la desconexion del usuario
                         if alias_desconectado:
