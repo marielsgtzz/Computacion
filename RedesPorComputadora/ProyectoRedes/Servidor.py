@@ -35,10 +35,12 @@ def imprimir_conversaciones():
 # Función para reenviar un mensaje de un cliente a otro
 def reenviar_mensaje(alias_remitente, alias_destinatario, msj):
     print(f"Intentando reenviar mensaje de {alias_remitente} a {alias_destinatario}")
+
     if alias_destinatario in clientes:
         cliente_destino, _ = clientes[alias_destinatario]
         try: #Intenta mandar el mensaje al cliente destino
-            cliente_destino.send(f"{alias_remitente}: {msj}".encode(FORMAT))
+            terminalMsg = f"{alias_remitente}: {msj}" 
+            cliente_destino.send(terminalMsg.encode(FORMAT))
             print(f"Mensaje enviado de {alias_remitente} a {alias_destinatario}: {msj}")
         except Exception as e: #De no ser posible, marca error
             print(f"Error al reenviar mensaje: {e}")
@@ -73,7 +75,8 @@ def manejar_conversacion(cliente1, cliente2, alias1, alias2):
                 for s in inputs:
                     if time.time() - last_active[s] > 30:  # Verifica si se ha superado el tiempo de inactividad
                         try:
-                            s.send("Desconexión por inactividad.\n".encode(FORMAT))
+                            terminalMsg = "\033[1m" + "Chat: Desconexión por inactividad.\n"+ "\033[0m"
+                            s.send(terminalMsg.encode(FORMAT))
                         except Exception as e:
                             print(f"Error al enviar mensaje de desconexión por inactividad: {e}")
                         finally:
@@ -84,14 +87,16 @@ def manejar_conversacion(cliente1, cliente2, alias1, alias2):
                 if s is cliente1:
                     mensaje = manejar_mensaje(cliente1, alias1)
                     if mensaje == DISCONNECT_MESSAGE or mensaje is None:
-                        cliente2.send(f"{alias1} se ha desconectado. Con qué alias quieres hablar?".encode(FORMAT))
+                        terminalMsg = "\033[1m" + f"{alias1} se ha desconectado. Con qué alias quieres hablar?"+ "\033[0m"
+                        cliente2.send(terminalMsg.encode(FORMAT))
                         return alias1
                     reenviar_mensaje(alias1, alias2, mensaje)
                     last_active[cliente1] = time.time()  # Actualizar el tiempo de la última actividad
                 elif s is cliente2:
                     mensaje = manejar_mensaje(cliente2, alias2)
                     if mensaje == DISCONNECT_MESSAGE or mensaje is None:
-                        cliente1.send(f"{alias2} se ha desconectado. Con qué alias quieres hablar?\n".encode(FORMAT))
+                        terminalMsg = "\033[1m" +f"Chat:{alias2} se ha desconectado. Con qué alias quieres hablar?\n"+ "\033[0m"
+                        cliente1.send(terminalMsg.encode(FORMAT))
                         return alias2
                     reenviar_mensaje(alias2, alias1, mensaje)
                     last_active[cliente2] = time.time()  # Actualizar el tiempo de la última actividad
@@ -100,14 +105,18 @@ def manejar_conversacion(cliente1, cliente2, alias1, alias2):
                 if s is cliente1:
                     try:
                          # Notifica al otro cliente que el cliente1 ha tenido un problema
-                        cliente2.send(f"{alias1} ha tenido un problema. Con qué alias quieres hablar?\n".encode(FORMAT))
+                        terminalMsg = "\033[1m" +f"Chat: {alias1} ha tenido un problema. Con qué alias quieres hablar?\n"+ "\033[0m"
+                        cliente2.send(terminalMsg.encode(FORMAT))
+
                     except OSError as e:
                         print(f"Error al enviar mensaje a {alias2}: {e}")
                     return alias1
                 elif s is cliente2:
                     try:
                         # Notifica al otro cliente que el cliente2 ha tenido un problema
-                        cliente1.send(f"{alias2} ha tenido un problema. Con qué alias quieres hablar?\n".encode(FORMAT))
+                        terminalMsg = "\033[1m" +f"Chat: {alias2} ha tenido un problema. Con qué alias quieres hablar?\n"+ "\033[0m"
+                        cliente1.send(terminalMsg.encode(FORMAT))
+
                     except OSError as e:
                         print(f"Error al enviar mensaje a {alias1}: {e}")
                     return alias2
@@ -136,7 +145,9 @@ def handle_client(conn, addr):
         while True:
             try:
                 # Intenta enviar un mensaje solicitando el alias de destino al cliente
-                conn.send("Con que alias quieres hablar?\n".encode(FORMAT))
+                terminalMsg = "\033[1m" +"Chat: Con que alias quieres hablar?\n" + "\033[0m"
+                conn.send(terminalMsg.encode(FORMAT))
+
             except (ConnectionResetError, BrokenPipeError):
                 # Imprime un mensaje indicando que el cliente se desconecto durante la solicitud de alias
                 print(f"[DESCONEXION] {alias} se ha desconectado durante la solicitud de alias.")
@@ -160,12 +171,15 @@ def handle_client(conn, addr):
                     
                     # Verifica si el alias destino ya está ocupado en una conversación
                     if alias_destino in clientes_ocupados.values():
-                        conn.send(f"Error: {alias_destino} esta en otro chat\n".encode(FORMAT))
+                        terminalMsg = "\033[1m" +f"Chat: Error: {alias_destino} esta en otro chat\n"+ "\033[0m"
+                        conn.send(terminalMsg.encode(FORMAT))
                         continue
                         
 
                     # Envia un mensaje al cliente de destino solicitando su aceptacion para la conversacion
-                    cliente_destino.send(f"{alias} quiere hablar contigo. Aceptas? (s/n)".encode(FORMAT))
+                    terminalMsg = "\033[1m" + f"Chat: {alias} quiere hablar contigo. Aceptas? (s/n)"+ "\033[0m"
+                    cliente_destino.send(terminalMsg.encode(FORMAT))
+
                     respuesta = conn.recv(HEADER).decode(FORMAT).strip().lower()
 
                      # Verifica si la respuesta es afirmativa
@@ -204,7 +218,10 @@ def handle_client(conn, addr):
                             otro_cliente = alias if alias_desconectado == alias_destino else alias_destino
                             if otro_cliente in clientes:
                                 try:
-                                    clientes[otro_cliente][0].send(f"Tu compañero de chat {alias_desconectado} se ha desconectado.\n".encode(FORMAT))
+                                    terminalMsg = "\033[1m"+ f"Chat: Tu compañero de chat {alias_desconectado} se ha desconectado.\n"+ "\033[0m"
+                                    clientes[otro_cliente][0].send(terminalMsg.encode(FORMAT))
+                                                                                
+
                                 except (ConnectionResetError, BrokenPipeError):
                                     print(f"Error al enviar mensaje a {otro_cliente}: La conexión fue reseteada por el host remoto.")
                             continue  # Hace que el bucle vuelva al inicio para preguntar de nuevo
@@ -212,7 +229,8 @@ def handle_client(conn, addr):
                     else:
                         print(f"{alias} rechazó la conversación con {alias_destino}.")
                 else:
-                    conn.send("[ERROR] Usuario no encontrado.\n".encode(FORMAT))
+                    terminalMsg = "\033[1m"+ "Chat: [ERROR] Usuario no encontrado.\n"+ "\033[0m"
+                    conn.send(terminalMsg.encode(FORMAT))
 
             except (ConnectionResetError, BrokenPipeError): # Captura excepciones de conexion reseteada o tuberia rota durante la conversacion
                 # Imprime un mensaje indicando que el cliente se ha desconectado abruptamente durante la conversacion
