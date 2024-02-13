@@ -24,4 +24,9 @@ class AddressBook {
         }
     }
 
+    public Boolean isKeyValid(int key){
+        if (key >= size) return false;
+        else return true;
+    }
+
 }

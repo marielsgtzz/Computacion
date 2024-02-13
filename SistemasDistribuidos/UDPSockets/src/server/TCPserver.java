@@ -1,4 +1,4 @@
-package participants;
+package server;
 
 import java.net.*;
 import java.io.*;
@@ -36,6 +36,7 @@ class Connection extends Thread {
             clientSocket = aClientSocket; 
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
+            
         } catch (IOException e) {
             System.out.println("Connection:" + e.getMessage());
         }
@@ -46,10 +47,30 @@ class Connection extends Thread {
         try {
             // an echo server
             String data = in.readUTF();         // recibo solicitud
+            while(data!="Fin"){
+                int key = Integer.parseInt(data); 
+                AddressBook addressBook = new AddressBook();
+                Person p = new Person();
+                String msj;
+                if(addressBook.isKeyValid(key)){
+                    p = addressBook.getRecord(key);
+                    msj = "Message received from: " + p.getName();
+                    System.out.println(msj);
+                } else { 
+                    msj = "Invalid key";
+                    System.out.println(msj);
+                }
+                
+                out.writeUTF(msj);                // envio respuesta
+                data = in.readUTF(); 
+            }
 
-            System.out.println("Message received from: " + clientSocket.getRemoteSocketAddress());
-
-            out.writeUTF(data);                // envio respuesta
+            if(data=="Fin"){
+                clientSocket.close();
+                System.out.println("Bye");
+            }
+           
+            
 
         } catch (EOFException e) {
             System.out.println("EOF:" + e.getMessage());
