@@ -1,0 +1,54 @@
+<!--Página para portal de clínica de litigio penal del ITAM
+    Clase ADSI Primavera 2023
+    Autorxs:
+     marielsgtzz@gmail.com || chocs.whatever@gmail.com || mzapatacovarrubias@gmail.com || angelalv0810@gmail.com
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Buscar Caso</title>
+    <link href="CSSGeneral.css" rel="stylesheet">
+  </head>
+  <body>
+    <h2>Buscar Caso</h2>
+    <div>
+      <form>
+        <input type="text" class="textBoxBuscar" name="search" placeholder="Buscar...">
+        <button type="submit">Buscar</button>
+      </form>
+    </div>
+    <div>
+      <label for="tipoDelito">Tipo Delito:</label>
+        <select class="selectsBuscar" id="tipoDelitoBusquedaCaso" name="tipoDelito">
+          <option value="opcion1">Opcion 1</option>
+          <option value="opcion2">Opcion 2</option>
+          <option value="opcion3">Opcion 3</option>
+        </select>
+        <label for="nombreIn">Nombre/iniciales:</label>
+        <select class="selectsBuscar" id="nombreInBusquedaCaso" name="nombreIn">
+          <option value="opcion1">Opcion 1</option>
+          <option value="opcion2">Opcion 2</option>
+          <option value="opcion3">Opcion 3</option>
+        </select>
+        <label for="estado">Estado:</label>
+        <select class="selectsBuscar" id="estadoBusquedaCaso" name="estado">
+          <option value="opcion1">Opcion 1</option>
+          <option value="opcion2">Opcion 2</option>
+          <option value="opcion3">Opcion 3</option>
+        </select>
+    </div>
+
+    <div class="grid-container">
+      <h2>Lista de resultados:</h2>
+      <div class="grid-item">Resultado 1</div>
+      <div class="grid-item">Resultado 2</div>
+      <div class="grid-item">Resultado 3</div>
+    </div>
+    
+    <div class="divCerrarSesion">
+      <button class="cerrar_sesion_button">Regresar</button>
+    </div>
+
+    <p class="mt-5 mb-3 text-body-secondary">&copy; Derechos reservados Linces 2023</p>
+  </body>
+</html>

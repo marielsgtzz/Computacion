@@ -1,0 +1,61 @@
+<!--Página para portal de clínica de litigio penal del ITAM
+    Clase ADSI Primavera 2023
+    Autorxs:
+     marielsgtzz@gmail.com || chocs.whatever@gmail.com || mzapatacovarrubias@gmail.com || angelalv0810@gmail.com
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Agregar Tarea</title>
+    <link href="CSSGeneral.css" rel="stylesheet">
+  </head>
+  <body>
+    <h2>Agregar Tarea</h2>
+
+    <form class="formAgregarTarea">
+      <div><label for="estudiante">Estudiante al que se le asigna el caso:</label></div>
+      <div>
+        <select class="selectsCrear" id="estudianteAgregarTarea" name="estudiante">
+          <option value="Gabriella">Opcion 1</option>
+          <option value="Troy">Opcion 2</option>
+          <option value="Sharpay">Opcion 3</option>
+        </select>
+      </div>
+
+      <div><label for="fecha">Fecha de entrega:</label></div>
+      <div><input class="selectsCrear" type="date" id="fechaAgregarTarea" name="fecha"></div>
+
+      <div><label for="estatus">Caso al que corresponde:</label></div>
+      <div>
+        <select class="selectsCrear" id="estatusAgregarTarea" name="estatus">
+          <option value="opcion1">Opcion 1</option>
+          <option value="opcion2">Opcion 2</option>
+          <option value="opcion3">Opcion 3</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="estatus">Estatus del caso:</label></div>
+      <div>
+        <select class="selectsCrear" id="estatusAgregarTarea" name="estatus">
+          <option value="opcion1">Opcion 1</option>
+          <option value="opcion2">Opcion 2</option>
+          <option value="opcion3">Opcion 3</option>
+        </select>
+      </div>
+    </form>
+    <div class="divNota">
+      <label for="nota">Nota:</label>
+      <textarea class="espacioNota" id="notaAgregarTarea" name="nota" rows="4" cols="50"></textarea>
+    </div>
+    <div>
+      <button id="btnAgregarTarea">Agregar Tarea</button>
+    </div>
+
+    <div class="divCerrarSesion">
+      <button class="cerrar_sesion_button" type="button" id="btnRegresarCasoAgregarTarea">Regresar a Caso</button>
+      <button class="cerrar_sesion_button" type="button" id="btnRegrearPortalAgregarTarea">Regresar al Portal</button>
+    </div>
+    <p class="mt-5 mb-3 text-body-secondary">&copy; Derechos reservados Linces 2023</p>
+  </body>
+</html>

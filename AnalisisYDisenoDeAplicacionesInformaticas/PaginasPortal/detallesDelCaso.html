@@ -1,0 +1,89 @@
+<!--Página para portal de clínica de litigio penal del ITAM
+    Clase ADSI Primavera 2023
+    Autorxs:
+     marielsgtzz@gmail.com || chocs.whatever@gmail.com || mzapatacovarrubias@gmail.com || angelalv0810@gmail.com
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Detalles del caso</title>
+    <link href="CSSGeneral.css" rel="stylesheet">
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Detalles del caso</h1>
+      </div>
+    </header>
+    
+    <h2>Descripción del caso</h2>
+    <p>En esta seccion se describe el caso en cuestion.</p>
+
+    <div>
+      <form>
+        <label for="nombre-caso">Nombre del caso:</label>
+        <input type="text" class="selectsBuscar" id="txtNombreCasoDetalles" name="nombre-caso">
+
+        <label for="estatus-caso">Estatus del caso:</label>
+        <select id="ddEstatusCAaso" class="selectsBuscar" name="estatus-caso">
+          <option value="pendiente">Pendiente</option>
+          <option value="en-proceso">En proceso</option>
+          <option value="finalizado">Finalizado</option>
+        </select>
+      </form>
+    </div>
+
+    <div class="divTareasDetallesCaso">
+      <div><h2 class="h2Detalles">Tareas</h2></div>
+
+      <div class="divDetallesCaso">
+        <div><label for="titulo">Título de la tarea:</label></div>
+        <div><label for="asignado">Asignado a:</label></div>
+        <div><label for="fecha">Fecha de entrega:</label></div>
+        <div><label for="estatus">Estatus:</label></div>
+        <div><label for="nota">Nota:</label></div>
+
+        <div><input class="selectsCrear" type="text" id="tituloTarea" name="titulo"></div>
+        <div><input class="selectsCrear" type="text" id="asignado" name="asignado"></div>
+        <div><input class="selectsCrear" type="date" id="fechaEntrega" name="fecha"></div>
+        <div><input class="selectsCrear" type="text" id="estatus" name="estatus"></div>
+        <div><input class="selectsCrear" type="text" id="nota" name="nota"></div>
+
+        <div><input class="selectsCrear" type="text" id="tituloTarea" name="titulo"></div>
+        <div><input class="selectsCrear" type="text" id="asignado" name="asignado"></div>
+        <div><input class="selectsCrear" type="date" id="fechaEntrega" name="fecha"></div>
+        <div><input class="selectsCrear" type="text" id="estatus" name="estatus"></div>
+        <div><input class="selectsCrear" type="text" id="nota" name="nota"></div>
+
+        <div><input class="selectsCrear" type="text" id="tituloTarea" name="titulo"></div>
+        <div><input class="selectsCrear" type="text" id="asignado" name="asignado"></div>
+        <div><input class="selectsCrear" type="date" id="fechaEntrega" name="fecha"></div>
+        <div><input class="selectsCrear" type="text" id="estatus" name="estatus"></div>
+        <div><input class="selectsCrear" type="text" id="nota" name="nota"></div>
+
+        <div><input class="selectsCrear" type="text" id="tituloTarea" name="titulo"></div>
+        <div><input class="selectsCrear" type="text" id="asignado" name="asignado"></div>
+        <div><input class="selectsCrear" type="date" id="fechaEntrega" name="fecha"></div>
+        <div><input class="selectsCrear" type="text" id="estatus" name="estatus"></div>
+        <div><input class="selectsCrear" type="text" id="nota" name="nota"></div>
+
+      </div>
+    </div>
+    
+
+    <div class="divDetallesCasoBut">
+      <div><button id="btnVersionesFinales">Versiones finales</button></div>
+      <div><button id="btnBorradorCorrecciones">Borrador y correcciones</button></div>
+      <div><button id="btnInformacionCaso">Información del caso</button></div>
+    </div>
+
+    <div class="divCerrarSesion">
+      <button class="cerrar_sesion_button" type="button" id="btRegresaPortal">Regresar al Portal</button>
+      <button class="cerrar_sesion_button" type="button" id="btAgregaTarea" >Ir a Agregar Tarea</button>
+    </div>
+
+    <p class="mt-5 mb-3 text-body-secondary">&copy; Derechos reservados Linces 2023</p>
+  </body>
+</html>
