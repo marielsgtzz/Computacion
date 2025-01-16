@@ -1,0 +1,11 @@
+﻿BaseOpenGL.obj : error LNK2019: símbolo externo glfwInit sin resolver al que se hace referencia en la función main
+BaseOpenGL.obj : error LNK2019: símbolo externo glfwTerminate sin resolver al que se hace referencia en la función main
+BaseOpenGL.obj : error LNK2019: símbolo externo glfwWindowHint sin resolver al que se hace referencia en la función main
+BaseOpenGL.obj : error LNK2019: símbolo externo glfwCreateWindow sin resolver al que se hace referencia en la función main
+BaseOpenGL.obj : error LNK2019: símbolo externo glfwWindowShouldClose sin resolver al que se hace referencia en la función main
+BaseOpenGL.obj : error LNK2019: símbolo externo glfwSetWindowShouldClose sin resolver al que se hace referencia en la función "void __cdecl processInput(struct GLFWwindow *)" (?processInput@@YAXPEAUGLFWwindow@@@Z)
+BaseOpenGL.obj : error LNK2019: símbolo externo glfwWaitEvents sin resolver al que se hace referencia en la función main
+BaseOpenGL.obj : error LNK2019: símbolo externo glfwGetKey sin resolver al que se hace referencia en la función "void __cdecl processInput(struct GLFWwindow *)" (?processInput@@YAXPEAUGLFWwindow@@@Z)
+BaseOpenGL.obj : error LNK2019: símbolo externo glfwMakeContextCurrent sin resolver al que se hace referencia en la función main
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\OpenGL\glfw\lib-vc2022\glfw3.lib : warning LNK4272: el tipo de máquina de biblioteca 'x86' está en conflicto con el tipo de máquina de destino 'x64'
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\BaseOpenGL\x64\Debug\BaseOpenGL.exe : fatal error LNK1120: 9 externos sin resolver

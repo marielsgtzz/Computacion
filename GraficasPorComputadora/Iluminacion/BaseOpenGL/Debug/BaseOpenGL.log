@@ -1,0 +1,11 @@
+﻿  difusa.cpp
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\Dependencies\shaders\shader_m.h(44,40): warning C4101: 'e': variable local sin referencia
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\BaseOpenGL\difusa.cpp(164,28): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\BaseOpenGL\difusa.cpp(263,17): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\BaseOpenGL\difusa.cpp(264,17): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\BaseOpenGL\difusa.cpp(268,19): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\BaseOpenGL\difusa.cpp(269,19): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\BaseOpenGL\difusa.cpp(271,13): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\BaseOpenGL\difusa.cpp(272,13): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\BaseOpenGL\difusa.cpp(281,31): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+  BaseOpenGL.vcxproj -> C:\Users\MGUTIERRZA\Desktop\GraficasPorComputadora\Iluminacion\Debug\BaseOpenGL.exe
